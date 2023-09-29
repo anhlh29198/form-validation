@@ -1,9 +1,11 @@
 const divs = document.querySelectorAll(".form-input");
-const user_password_input = Array.from(divs).find(div => div.id === "password").querySelector("input");
-const user_password_error = Array.from(divs).find(div => div.id === "password").querySelector(".error");
-const button = document.querySelector("button");
+const user_pass_input = document.getElementById("user-password");
+// const user_password_error = document.querySelector("input#user-password + span.error");
+const user_pass_input_confirm = document.getElementById("user-confirm");
+const user_pass_error = document.querySelector("input#user-confirm + span.error");
+const form = document.querySelector("form");
 
-const nameRegExp = /\w{2,}/;
+const nameRegExp = /[a-zA-Z]{2,}/;
 // const phoneRegExp = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
 const emailRegExp = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 const passRegExp = /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
@@ -11,148 +13,180 @@ const passRegExp = /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 let pass;
 let pass_confirm;
 
-//check if the input is valid according to pattern
-function isValid(e, regExp) {
-    return (regExp.test(e.value)) ? "valid" : "invalid";
+// //check if the input is valid according to pattern
+function isValid(input, regExp) {
+    return (regExp.test(input.value)) ? true : false;
 }
-//check if the 2 pass are same
-function isPassSame(pass, pass_confirm) {
-    if (user_password_input.className === "invalid") return;
-    return (pass !== pass_confirm) ? "invalid" : "valid";
-}
-//show error if invalid input
-function showError(input, error) {
-    if (input.className === "invalid") {
-        switch (input.id) {
-            case "user-email":
-                error.textContent = "Invalid Email Format";
-                break;
 
-            case "user-password":
-                error.textContent = "Password does not meet the requirements below";
-                break;
+form.addEventListener("submit", (e) => {
+    divs.forEach(div => {
+        const input = div.querySelector("input");
+        const error = div.querySelector("span.error");
 
-            case "user-confirm":
-                error.textContent = "Password does not match";
-                user_password_input.className = "invalid";
-                break;
-        }
-    }
-    else if (input.className === "valid") {
-        if (input.id === "user-confirm") {
-            user_password_input.className = isValid(user_password_input, passRegExp);
-        }
-        error.textContent = "";
-        return;
-    }
+        if (input.value.length === 0 || input.value == null) {
+            if (input.id === "phone-number") {return};
 
-    if (input.value.length === 0) {
-        if (input.id === "phone-number") {}
-        else {
-            input.className = "invalid";
-            error.textContent = "Please fill the blank";
-        }
-        
-        if (input.className === "valid") {
-            error.textContent = "";
-        }
-    }
-}
-//check if input is blank
-function ifBlank(input, error, blank) {
-    if (blank === 0) {
-        if (input.id === "user-confirm") {
-            user_password_input.className = isValid(user_password_input, passRegExp);
-            
-            if (user_password_input.value.length === 0) {
-                user_password_input.className = "";
+            switch (input.id) {
+                case "first-name": 
+                case "last-name":
+                    input.className = "invalid";
+                    error.textContent = "Name is required";
+                    break;
+
+                case "user-email":
+                    input.className = "invalid";
+                    error.textContent = "Email is required";
+                    break;
+
+                case "user-password":
+                case "user-confirm":
+                    input.className = "invalid";
+                    error.textContent = "Password is required";
+                    break;
             }
+            e.preventDefault();
         }
-        input.className = "";
-        error.textContent = "";
-    }
-}
+
+        if (input.className === "invalid") {
+            e.preventDefault();
+        }  
+    });
+});
 
 divs.forEach(div => {
     const input = div.querySelector("input");
     const error = div.querySelector("span.error");
+    
 
-    input.addEventListener("input", (e) => {
-        switch (e.target.id) {
+    input.addEventListener("focus", () => {
+        switch (input.id) {
+            case "phone-number":
+                return;
+
+            case "user-password":
+                div.querySelector(".instruction").style.display = "block";
+        }
+
+        input.className = "";
+        error.textContent = "";
+    });
+
+    input.addEventListener("input", () => {
+        switch (input.id) {
             case "last-name":
             case "first-name":
-                input.className = isValid(e.target, nameRegExp);
-                showError(input, error);
-                if (e.target.value.length === 0) {input.className = ""};
+            case "user-email":
+                if (input.value.length === 0) {
+                    input.className = "";
+                    error.textContent = "";
+                }
+                break;
+
+            case "user-password":
+                pass = input.value;
+                if (input.value.length === 0) {
+                    input.className = "";
+                    error.textContent = "";
+                }
+                break;
+
+            case "user-confirm":
+                pass_confirm = input.value;
+                if (input.value.length === 0) {
+                    input.className = "";
+                    error.textContent = "";
+                }
+                break;
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        switch (input.id) {
+            case "last-name":
+            case "first-name":
+                if (isValid(input, nameRegExp)) {
+                    input.className = "valid";
+                    error.textContent = "";
+                }
+                else {
+                    input.className = "invalid";
+                    error.textContent = "Name must be letters";
+                }
+
+                if (input.value.length === 0) {
+                    input.className = "";
+                    error.textContent = "";
+                }
                 break;
 
             case "user-email":
-                ifBlank(input, error, e.target.value.length);
+                if (isValid(input, emailRegExp)) {
+                    input.className = "valid";
+                    error.textContent = "";
+                }
+                else {
+                    input.className = "invalid";
+                    error.textContent = "Invalid Email";
+                }
+
+                if (input.value.length === 0) {
+                    input.className = "";
+                    error.textContent = "";
+                }
+                break;
+
+            case "user-password":
+                if (isValid(input, passRegExp)) {
+                    input.className = "valid";
+                    if (pass === pass_confirm) {
+                        user_pass_input_confirm.className = "valid";
+                    }
+                    error.textContent = "";
+                }
+                else {
+                    input.className = "invalid";
+                    user_pass_input_confirm.className = "invalid";
+                    user_pass_error.textContent = "";
+                    error.textContent = "Invalid Password";
+                }
+
+                if (input.value.length === 0) {
+                    input.className = "";
+                    error.textContent = "";
+                }
                 break;
             
-            // case "phone-number":
-            //     input.className = isValid(e.target, phoneRegExp);
-            //     if (e.target.value.length === 0) {input.className = ""};
-            //     break;
-
-            case "user-password":
-                pass = e.target.value;
-                ifBlank(input, error, e.target.value.length);
-                break;
-
             case "user-confirm":
-                pass_confirm = e.target.value;
-                ifBlank(input, error, e.target.value.length);
+                if (isValid(user_pass_input, passRegExp)) {
+                    user_pass_input.className = "valid";
+                    if (pass === pass_confirm) {
+                        input.className = "valid";
+                        error.textContent = "";
+                    }
+                    else {
+                        input.className = "invalid";
+                        user_pass_input.className = "invalid";
+                        error.textContent = "Unmatched Password";
+                    }
+                }
+                else {
+                    input.className = "invalid";
+                }
+                
+                if (input.value.length === 0) {
+                    input.className = "";
+                    error.textContent = "";
+                    if (isValid(user_pass_input, passRegExp)) {
+                        user_pass_input.className = "valid";
+                        error.textContent = "";
+                    }
+                }
                 break;
         }
+
+        if (input.id === "user-password") {
+                div.querySelector(".instruction").style.display = "none";
+            }
     });
-
-    input.addEventListener("blur", (e) => {
-        switch (e.target.id) {
-            case "user-email":
-                input.className = isValid(e.target, emailRegExp);
-                showError(input, error);
-                ifBlank(input, error, e.target.value.length);
-                break;
-
-            case "user-password":
-                input.className = isValid(e.target, passRegExp);
-                showError(input, error);
-                ifBlank(input, error, e.target.value.length);
-                break;
-
-            case "user-confirm":
-                input.className = isPassSame(pass, pass_confirm);
-                showError(input, error);
-                ifBlank(input, error, e.target.value.length);
-                break;
-        }
-    });
-
-
-});
-
-// button.addEventListener("click", (e) => {
-//     e.target.disabled = false;
-//     divs.forEach(div => {
-//         const input = div.querySelector("input");
-//         const error = div.querySelector("span.error");
-
-//         if (input.value.length === 0) {
-//             showError(input, error);
-//         }
-//         if (input.className === "invalid") {
-//             e.target.disabled = true;
-//         }
-//         else if (input.className === "valid") {
-//             e.target.removeAtrribute("disabled");
-//         }
-//     });
-
     
-// console.log(e.target.disabled);
-// });
-
-
-
-
+});
